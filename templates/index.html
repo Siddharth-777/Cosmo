@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmo | Your AI Therapist</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="chat-box" id="chat-box">
+            <div class="message bot-message">
+                <p>Hey! I’m Cosmo. What’s on your mind today?</p>
+            </div>
+        </div>
+        <form id="chat-form" class="chat-input">
+            <input type="text" id="user-input" name="user_input" placeholder="Type your thoughts..." autocomplete="off">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            const userDiv = document.createElement('div');
+            userDiv.classList.add('message', 'user-message');
+            userDiv.innerHTML = `<p>${message}</p>`;
+            chatBox.appendChild(userDiv);
+
+            // Clear input
+            userInput.value = '';
+
+            // Scroll to bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Send message to server
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `user_input=${encodeURIComponent(message)}`
+            });
+            const data = await response.json();
+
+            // Add bot response to chat
+            const botDiv = document.createElement('div');
+            botDiv.classList.add('message', 'bot-message');
+            botDiv.innerHTML = `<p>${data.response}</p>`;
+            chatBox.appendChild(botDiv);
+
+            // Scroll to bottom again
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    </script>
+</body>
+</html>
