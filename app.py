@@ -193,6 +193,4 @@ def update_voice_language():
         return jsonify({"status": "success"})
     return jsonify({"status": "error", "message": "Invalid language"}), 400
 
-# For Vercel serverless compatibility (no if __name__ block needed)
-from vercel_python_wsgi import Vercel
-app = Vercel(app)
+
