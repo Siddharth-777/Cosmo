@@ -1,6 +1,5 @@
 flask
 gunicorn
-vercel-python-wsgi
 langchain-community
 langchain-groq
 elevenlabs
