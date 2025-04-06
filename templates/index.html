@@ -113,13 +113,13 @@
         const userInput = document.getElementById('user-input');
         const voiceInput = document.getElementById('voice-input');
 
-        console.log("Initializing chat form:", chatForm); // Debug log
+        console.log("Initializing chat form:", chatForm);
 
         if (chatForm) {
             chatForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const message = userInput.value.trim();
-                console.log("Form submitted with message:", message); // Debug log
+                console.log("Form submitted with message:", message);
                 if (!message) {
                     console.log("No message provided, skipping submission");
                     return;
@@ -137,36 +137,38 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
 
                 try {
-                    console.log("Sending fetch request to /chat"); // Debug log
+                    console.log("Sending fetch request to /chat");
                     const response = await fetch('/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: `user_input=${encodeURIComponent(message)}`
                     });
-                    console.log("Fetch response status:", response.status); // Debug log
+                    console.log("Fetch response status:", response.status);
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     const data = await response.json();
-                    console.log("Response data:", data); // Debug log
+                    console.log("Response data:", data);
 
                     const botDiv = document.createElement('div');
                     botDiv.classList.add('message', 'bot-message');
                     botDiv.innerHTML = `<div class="avatar">🤖</div><p>${data.text || 'No response'}</p>`;
                     chatBox.appendChild(botDiv);
 
-                    if (data.audio_url) {
-                        const audioUrlWithTimestamp = `${data.audio_url}?t=${new Date().getTime()}`;
-                        const audio = new Audio(audioUrlWithTimestamp);
+                    if (data.audio_base64) {
+                        const audio = new Audio(`data:audio/mp3;base64,${data.audio_base64}`);
                         audio.play().catch(err => console.error("Audio play error:", err));
                     }
 
                     chatBox.scrollTop = chatBox.scrollHeight;
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    }
                 } catch (error) {
-                    console.error("Fetch error:", error.message || error); // Detailed error log
+                    console.error("Fetch error:", error.message || error);
                     const botDiv = document.createElement('div');
                     botDiv.classList.add('message', 'bot-message');
-                    botDiv.innerHTML = `<div class="avatar">🤖</div><p>An error occurred (Status: ${response ? response.status : 'N/A'}). Check console for details.</p>`;
+                    botDiv.innerHTML = `<div class="avatar">🤖</div><p>An error occurred: ${error.message}. Check console for details.</p>`;
                     chatBox.appendChild(botDiv);
                     chatBox.scrollTop = chatBox.scrollHeight;
                 }
@@ -219,12 +221,10 @@
                     if (data.status === 'success') {
                         const chatElement = document.querySelector(`.history-item[data-chat-id="${chatId}"]`);
                         if (chatElement) chatElement.remove();
-                        if (sessionStorage.getItem('current_chat') === chatId) {
-                            sessionStorage.removeItem('current_chat');
-                            window.location.href = '{{ url_for("index") }}';
-                        }
+                        // Rely on server-side redirect instead of sessionStorage
+                        window.location.href = '{{ url_for("index") }}';
                     } else {
-                        alert('Failed to delete the chat.');
+                        alert('Failed to delete the chat: ' + (data.message || 'Unknown error'));
                     }
                 })
                 .catch(error => console.error('Error deleting chat:', error));
