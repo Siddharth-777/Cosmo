@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
-from chatbot.langchain_bot import run, get_chat_history
+from chatbot.langchain_bot import run, get_chat_history  # Ensure this module exists
 from datetime import datetime
 import os
+from vercel_python_wsgi import Vercel
 
-app = Flask(__name__)  
+app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", "your-secret-key-here")  # Add this for sessions
 
 class Chat:
     def __init__(self, id, title):
@@ -71,25 +73,25 @@ def index():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    print("Chat route hit")  # Debug log
+    print("Chat route hit")
     user_input = request.form.get("user_input", "").strip()
-    print(f"Received user input: {user_input}")  # Debug log
+    print(f"Received user input: {user_input}")
     if not user_input:
-        print("No input provided")  # Debug log
+        print("No input provided")
         return jsonify({"text": "Please enter a message.", "audio_url": None})
 
     if 'chats' not in session or not session.get('current_chat'):
-        print("No chat session or current chat")  # Debug log
+        print("No chat session or current chat")
         return jsonify({"text": "Please create or select a chat first.", "audio_url": None})
 
     current_chat = next((chat for chat in session['chats'] if chat['id'] == session['current_chat']), None)
     if not current_chat:
-        print("Current chat not found")  # Debug log
+        print("Current chat not found")
         return jsonify({"text": "Chat not found.", "audio_url": None})
 
     try:
         response = run(user_input)
-        print(f"Response from run: {response}")  # Debug log
+        print(f"Response from run: {response}")
         current_chat['messages'].append({
             'type': 'user',
             'content': user_input,
@@ -107,7 +109,7 @@ def chat():
             "redirect": url_for('index')
         })
     except Exception as e:
-        print(f"Error in chat route: {e}")  # Debug log
+        print(f"Error in chat route: {e}")
         return jsonify({"text": "An unexpected error occurred. Please try again.", "audio_url": None})
 
 @app.route("/history")
@@ -153,5 +155,5 @@ def update_voice_language():
         session.modified = True
     return jsonify({"status": "success"})
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# Export for Vercel
+app = Vercel(app)
