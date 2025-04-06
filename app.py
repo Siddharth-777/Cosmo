@@ -3,8 +3,7 @@ from chatbot.langchain_bot import run, get_chat_history
 from datetime import datetime
 import os
 
-app = Flask(__name__)
-app.secret_key = "your-secure-secret-key-here"  # Replace with a secure key or load from .env
+app = Flask(__name__)  
 
 class Chat:
     def __init__(self, id, title):
