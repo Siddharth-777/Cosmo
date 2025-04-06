@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Cosmo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
+</head>
+<body class="{{ 'dark-theme' if session.get('theme') == 'dark' else 'light-theme' }}">
+    <div class="dashboard">
+        {% include 'components/sidebar.html' %}
+        <main class="main-content">
+            {% include 'components/topbar.html' %}
+            <div class="content-container">
+                <div class="profile-page">
+                    <div class="profile-header">
+                        <span class="material-symbols-rounded profile-avatar">account_circle</span>
+                        <h1>Profile</h1>
+                        <p class="subtitle">Manage your personal details and preferences.</p>
+                    </div>
+                    <form class="profile-form" id="profile-form" onsubmit="saveProfile(event)">
+                        <div class="profile-info">
+                            <div class="info-group">
+                                <label for="name">Name</label>
+                                <input type="text" id="name" name="name" placeholder="Enter your name" value="Guest User" required>
+                            </div>
+                            <div class="info-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                            </div>
+                            <div class="info-group">
+                                <label for="language">Preferred Language</label>
+                                <select id="language" name="language">
+                                    <option value="english" {{ 'selected' if session.get('language', 'english') == 'english' }}>English</option>
+                                    <option value="hindi" {{ 'selected' if session.get('language', 'english') == 'hindi' }}>Hindi</option>
+                                </select>
+                            </div>
+                            <div class="info-group">
+                                <label for="theme">Theme Preference</label>
+                                <select id="theme" name="theme">
+                                    <option value="light" {{ 'selected' if session.get('theme', 'light') == 'light' }}>Light</option>
+                                    <option value="dark" {{ 'selected' if session.get('theme', 'dark') == 'dark' }}>Dark</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="save-button">
+                            <span class="material-symbols-rounded">save</span>
+                            Save Changes
+                        </button>
+                    </form>
+                    <div class="profile-actions">
+                        <button class="delete-account-btn" onclick="confirmDelete()">Delete Account</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function saveProfile(event) {
+            event.preventDefault();
+            const formData = new FormData(document.getElementById('profile-form'));
+            // Simulate API call to update server (replace with actual fetch)
+            fetch('/update_profile', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json()).then(data => {
+                if (data.status === 'success') alert('Profile updated successfully!');
+            }).catch(error => console.error('Error:', error));
+        }
+
+        function confirmDelete() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                // Simulate API call to delete account (replace with actual fetch)
+                fetch('/delete_account', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') window.location.href = '/';
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92c1f9b9bf77b078',t:'MTc0Mzk0OTc0Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>

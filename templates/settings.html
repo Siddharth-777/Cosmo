@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Cosmo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
+</head>
+<body class="{{ 'dark-theme' if session.get('theme') == 'dark' else 'light-theme' }}">
+    <div class="dashboard">
+        {% include 'components/sidebar.html' %}
+        <main class="main-content">
+            {% include 'components/topbar.html' %}
+            <div class="content-container">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h2 class="card-title">Voice Settings</h2>
+                        <div class="setting-item">
+                            <label for="voice-language">Voice Language</label>
+                            <select id="voice-language" name="voice_language">
+                                <option value="english" {{ 'selected' if session.get('voice_language', 'english') == 'english' }}>English</option>
+                                <option value="hindi" {{ 'selected' if session.get('voice_language', 'english') == 'hindi' }}>Hindi</option>
+                            </select>
+                        </div>
+                        <button class="save-button" onclick="saveVoiceSettings()">Save</button>
+                    </div>
+                    <div class="settings-card">
+                        <h2 class="card-title">Chat Settings</h2>
+                        <div class="setting-item">
+                            <label for="theme-select">Theme</label>
+                            <select id="theme-select" name="theme">
+                                <option value="light" {{ 'selected' if session.get('theme', 'light') == 'light' }}>Light</option>
+                                <option value="dark" {{ 'selected' if session.get('theme', 'dark') == 'dark' }}>Dark</option>
+                            </select>
+                        </div>
+                        <button class="save-button" onclick="saveChatSettings()">Save</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+    function saveVoiceSettings() {
+        const voiceLanguage = document.getElementById('voice-language').value;
+        fetch('/update_voice_language', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ voice_language: voiceLanguage })
+        }).then(response => response.json()).then(data => {
+            // Remove or comment out this line: if (data.status === 'success') alert('Voice language saved!');
+        });
+    }
+
+    function saveChatSettings() {
+        const theme = document.getElementById('theme-select').value;
+        document.body.classList.remove('light-theme', 'dark-theme');
+        document.body.classList.add(`${theme}-theme`);
+        localStorage.setItem('theme', theme);
+        fetch('/update_theme', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme: theme })
+        }).then(response => response.json()).then(data => {
+            // Remove or comment out this line: if (data.status === 'success') alert('Theme saved!');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const themeSelect = document.getElementById('theme-select');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.body.classList.add(`${currentTheme}-theme`);
+        themeSelect.value = currentTheme;
+    });
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92c1ce9beeddb0d5',t:'MTc0Mzk0Nzk4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>

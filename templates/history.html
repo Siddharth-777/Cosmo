@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat History - Cosmo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard">
+        {% include 'components/sidebar.html' %}
+        <main class="main-content">
+            {% include 'components/topbar.html' %}
+            <div class="content-container">
+                <div class="history-list">
+                    {% for chat in chat_history %}
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="material-symbols-rounded">history</span>
+                            <span class="history-date">{{ chat.date }}</span>
+                        </div>
+                        <div class="history-preview">{{ chat.preview }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

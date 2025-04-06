@@ -1,0 +1,44 @@
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h2>Cosmo</h2>
+    </div>
+    <div class="chats-section">
+        <div class="section-header">
+            <span class="material-symbols-rounded">chat</span>
+            <span>Chats</span>
+            <a href="{{ url_for('new_chat') }}" class="new-chat-btn">
+                <span class="material-symbols-rounded">add</span>
+            </a>
+        </div>
+    <div class="chat-list">
+        {% for chat in chats %}
+        <a href="{{ url_for('switch_chat', chat_id=chat.id) }}" class="history-item {% if current_chat and current_chat.id == chat.id %}active{% endif %}">
+            <div class="history-header">
+                <span class="material-symbols-rounded">chat</span>
+                <span>{{ chat.title if not chat.messages or not chat.messages[-1].content else chat.messages[-1].content[:50] ~ '...' if chat.messages[-1].content|length > 50 else chat.messages[-1].content }}</span>
+            </div>
+            <div class="history-preview">
+                {% if chat.messages and chat.messages|length > 0 %}
+                    {{ chat.messages[-1].content[:50] ~ '...' if chat.messages[-1].content|length > 50 else chat.messages[-1].content }}
+                {% else %}
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+    <div class="bottom-nav">
+        <a href="{{ url_for('history') }}" class="nav-item">
+            <span class="material-symbols-rounded">history</span>
+            History
+        </a>
+        <a href="{{ url_for('settings') }}" class="nav-item">
+            <span class="material-symbols-rounded">settings</span>
+            Settings
+        </a>
+        <a href="{{ url_for('help') }}" class="nav-item">
+            <span class="material-symbols-rounded">help</span>
+            Help
+        </a>
+    </div>
+</div>

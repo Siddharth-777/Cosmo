@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Cosmo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
+</head>
+<body class="{{ 'dark-theme' if session.get('theme') == 'dark' else 'light-theme' }}">
+    <div class="dashboard">
+        {% include 'components/sidebar.html' %}
+        <main class="main-content">
+            {% include 'components/topbar.html' %}
+            <div class="content-container">
+                <div class="notifications-page">
+                    <div class="notifications-header">
+                        <h1>Notifications</h1>
+                        <p class="subtitle">Stay updated with the latest from Cosmo.</p>
+                        <div class="filter-section">
+                            <select id="notification-filter" onchange="filterNotifications()">
+                                <option value="all">All</option>
+                                <option value="unread">Unread</option>
+                                <option value="read">Read</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="notifications-list" id="notifications-list">
+                        {% for notification in notifications %}
+                        <div class="notification-item {{ 'unread' if not notification.read else '' }}">
+                            <div class="notification-header">
+                                <span class="material-symbols-rounded">notification</span>
+                                <div class="notification-details">
+                                    <h3>{{ notification.title }}</h3>
+                                    <span class="notification-time">{{ notification.time }}</span>
+                                </div>
+                                {% if not notification.read %}
+                                <span class="badge">New</span>
+                                {% endif %}
+                            </div>
+                            <p class="notification-message">{{ notification.message }}</p>
+                            <button class="mark-read-btn" onclick="markAsRead(this)" data-id="{{ notification.id }}">Mark as Read</button>
+                        </div>
+                        {% endfor %}
+                        {% if not notifications %}
+                        <div class="empty-state">
+                            <span class="material-symbols-rounded">notifications_off</span>
+                            <p>No notifications yet. We'll notify you when something new happens!</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function filterNotifications() {
+            const filter = document.getElementById('notification-filter').value;
+            const items = document.querySelectorAll('.notification-item');
+            items.forEach(item => {
+                if (filter === 'all') item.style.display = 'block';
+                else if (filter === 'unread' && !item.classList.contains('unread')) item.style.display = 'none';
+                else if (filter === 'read' && item.classList.contains('unread')) item.style.display = 'none';
+                else item.style.display = 'block';
+            });
+        }
+
+        function markAsRead(button) {
+            const item = button.parentElement;
+            item.classList.remove('unread');
+            item.querySelector('.badge').remove();
+            // Simulate API call to update server (replace with actual fetch)
+            console.log(`Marked notification ${button.dataset.id} as read`);
+        }
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92c1f9b9ba04bf75',t:'MTc0Mzk0OTc0Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>

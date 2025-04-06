@@ -5,60 +5,231 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cosmo | Your AI Therapist</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <div class="chat-box" id="chat-box">
-            <div class="message bot-message">
-                <p>Hey! I’m Cosmo. What’s on your mind today?</p>
+<body class="{{ 'dark-theme' if session.get('theme') == 'dark' else 'light-theme' }}">
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Cosmo</h2>
             </div>
-        </div>
-        <form id="chat-form" class="chat-input">
-            <input type="text" id="user-input" name="user_input" placeholder="Type your thoughts..." autocomplete="off">
-            <button type="submit">Send</button>
-        </form>
+            <div class="chats-section">
+                <div class="section-header">
+                    <span class="material-symbols-rounded">chat</span>
+                    <span>Chats</span>
+                    <a href="{{ url_for('new_chat') }}" class="new-chat-btn">
+                        <span class="material-symbols-rounded">add</span>
+                    </a>
+                </div>
+                <div class="chat-list">
+                    {% for chat in chats %}
+                    <a href="{{ url_for('switch_chat', chat_id=chat.id) }}" class="history-item {% if current_chat and current_chat.id == chat.id %}active{% endif %}" data-chat-id="{{ chat.id }}">
+                        <div class="history-header">
+                            <span class="material-symbols-rounded">chat</span>
+                            <span>{{ chat.title if not chat.messages or not chat.messages[-1].content else chat.messages[-1].content[:50] ~ '...' if chat.messages[-1].content|length > 50 else chat.messages[-1].content }}</span>
+                        </div>
+                        <div class="history-preview">
+                            {% if chat.messages and chat.messages|length > 0 %}
+                                {{ chat.messages[-1].content[:50] ~ '...' if chat.messages[-1].content|length > 50 else chat.messages[-1].content }}
+                            {% else %}
+                            {% endif %}
+                        </div>
+                        <button class="delete-chat-btn" onclick="deleteChat(event, '{{ chat.id }}')">
+                            <span class="material-symbols-rounded">delete</span>
+                        </button>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="bottom-nav">
+                <a href="{{ url_for('history') }}" class="nav-item">
+                    <span class="material-symbols-rounded">history</span>
+                    History
+                </a>
+                <a href="{{ url_for('settings') }}" class="nav-item">
+                    <span class="material-symbols-rounded">settings</span>
+                    Settings
+                </a>
+                <a href="{{ url_for('help') }}" class="nav-item">
+                    <span class="material-symbols-rounded">help</span>
+                    Help
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <h1>Chat with Cosmo</h1>
+                <div class="user-menu">
+                    <a href="{{ url_for('notifications') }}" class="icon-button">
+                        <span class="material-symbols-rounded">notifications</span>
+                    </a>
+                    <a href="{{ url_for('profile') }}" class="icon-button">
+                        <span class="material-symbols-rounded">account_circle</span>
+                    </a>
+                </div>
+            </header>
+
+            <div class="chat-container">
+                {% if not current_chat %}
+                <div class="empty-chat-state">
+                    <span class="material-symbols-rounded">chat</span>
+                    <h2>No Chat Selected</h2>
+                    <p>Create a new chat or select an existing one from the sidebar to start talking with Cosmo.</p>
+                </div>
+                {% else %}
+                <div class="chat-box" id="chat-box">
+                    {% if current_chat.messages|length > 0 %}
+                        {% for message in current_chat.messages %}
+                        <div class="message {% if message.type == 'user' %}user-message{% else %}bot-message{% endif %}">
+                            {% if message.type == 'bot' %}<div class="avatar">🤖</div>{% endif %}
+                            <p>{{ message.content }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-chat-state">
+                            <p>No messages yet. Start by typing something!</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <form id="chat-form" class="chat-input">
+                    <input type="text" id="user-input" name="user_input" placeholder="Type your thoughts..." autocomplete="off">
+                    <button type="button" id="voice-input" class="voice-button">
+                        <span class="material-symbols-rounded">mic</span>
+                    </button>
+                    <button type="submit">
+                        <span class="material-symbols-rounded">send</span>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </main>
     </div>
 
     <script>
         const chatForm = document.getElementById('chat-form');
         const chatBox = document.getElementById('chat-box');
         const userInput = document.getElementById('user-input');
+        const voiceInput = document.getElementById('voice-input');
 
-        chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const message = userInput.value.trim();
-            if (!message) return;
+        console.log("Initializing chat form:", chatForm); // Debug log
 
-            // Add user message to chat
-            const userDiv = document.createElement('div');
-            userDiv.classList.add('message', 'user-message');
-            userDiv.innerHTML = `<p>${message}</p>`;
-            chatBox.appendChild(userDiv);
+        if (chatForm) {
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const message = userInput.value.trim();
+                console.log("Form submitted with message:", message); // Debug log
+                if (!message) {
+                    console.log("No message provided, skipping submission");
+                    return;
+                }
 
-            // Clear input
-            userInput.value = '';
+                const emptyState = chatBox.querySelector('.empty-chat-state');
+                if (emptyState) emptyState.remove();
 
-            // Scroll to bottom
-            chatBox.scrollTop = chatBox.scrollHeight;
+                const userDiv = document.createElement('div');
+                userDiv.classList.add('message', 'user-message');
+                userDiv.innerHTML = `<p>${message}</p>`;
+                chatBox.appendChild(userDiv);
 
-            // Send message to server
-            const response = await fetch('/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `user_input=${encodeURIComponent(message)}`
+                userInput.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                try {
+                    console.log("Sending fetch request to /chat"); // Debug log
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `user_input=${encodeURIComponent(message)}`
+                    });
+                    console.log("Fetch response status:", response.status); // Debug log
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    console.log("Response data:", data); // Debug log
+
+                    const botDiv = document.createElement('div');
+                    botDiv.classList.add('message', 'bot-message');
+                    botDiv.innerHTML = `<div class="avatar">🤖</div><p>${data.text || 'No response'}</p>`;
+                    chatBox.appendChild(botDiv);
+
+                    if (data.audio_url) {
+                        const audioUrlWithTimestamp = `${data.audio_url}?t=${new Date().getTime()}`;
+                        const audio = new Audio(audioUrlWithTimestamp);
+                        audio.play().catch(err => console.error("Audio play error:", err));
+                    }
+
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                } catch (error) {
+                    console.error("Fetch error:", error.message || error); // Detailed error log
+                    const botDiv = document.createElement('div');
+                    botDiv.classList.add('message', 'bot-message');
+                    botDiv.innerHTML = `<div class="avatar">🤖</div><p>An error occurred (Status: ${response ? response.status : 'N/A'}). Check console for details.</p>`;
+                    chatBox.appendChild(botDiv);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
             });
-            const data = await response.json();
+        } else {
+            console.error("Chat form not found in DOM!");
+        }
 
-            // Add bot response to chat
-            const botDiv = document.createElement('div');
-            botDiv.classList.add('message', 'bot-message');
-            botDiv.innerHTML = `<p>${data.response}</p>`;
-            chatBox.appendChild(botDiv);
+        if (voiceInput && 'webkitSpeechRecognition' in window) {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
 
-            // Scroll to bottom again
-            chatBox.scrollTop = chatBox.scrollHeight;
-        });
+            voiceInput.addEventListener('click', () => {
+                recognition.start();
+                voiceInput.classList.add('recording');
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                chatForm.dispatchEvent(new Event('submit'));
+                voiceInput.classList.remove('recording');
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                voiceInput.classList.remove('recording');
+            };
+
+            recognition.onend = () => {
+                voiceInput.classList.remove('recording');
+            };
+        } else {
+            voiceInput.style.display = 'none';
+            console.warn('Speech recognition not supported in this browser.');
+        }
+
+        function deleteChat(event, chatId) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to delete this chat? This action cannot be undone.')) {
+                fetch('/delete_chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const chatElement = document.querySelector(`.history-item[data-chat-id="${chatId}"]`);
+                        if (chatElement) chatElement.remove();
+                        if (sessionStorage.getItem('current_chat') === chatId) {
+                            sessionStorage.removeItem('current_chat');
+                            window.location.href = '{{ url_for("index") }}';
+                        }
+                    } else {
+                        alert('Failed to delete the chat.');
+                    }
+                })
+                .catch(error => console.error('Error deleting chat:', error));
+            }
+        }
     </script>
 </body>
 </html>

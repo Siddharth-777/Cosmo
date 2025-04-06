@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Chat - Cosmo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard">
+        {% include 'components/sidebar.html' %}
+        <main class="main-content">
+            {% include 'components/topbar.html' %}
+            <div class="content-container">
+                <div class="new-chat-container">
+                    <form method="POST" action="{{ url_for('new_chat') }}" class="new-chat-form">
+                        <div class="form-group">
+                            <label for="chat_title">Chat Name</label>
+                            <input type="text" id="chat_title" name="chat_title" placeholder="Enter chat name" required autocomplete="off">
+                        </div>
+                        <div class="form-buttons">
+                            <a href="{{ url_for('index') }}" class="button secondary">Cancel</a>
+                            <button type="submit" class="button primary">Create Chat</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92c1bc12196012d7',t:'MTc0Mzk0NzIyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
